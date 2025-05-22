@@ -19,7 +19,8 @@ import {
   CheckCircle,
   ShieldCheck,
   X,
-  Flame
+  Flame,
+  AlertCircle
 } from 'lucide-react';
 
 // Password strength component
@@ -64,7 +65,7 @@ const PasswordStrength = ({ password }) => {
   return (
     <div className="mt-1">
       <div className="flex items-center gap-2">
-        <div className="h-1 flex-1 bg-gray-700 rounded-full overflow-hidden">
+        <div className="h-1 flex-1 bg-[#0f1631]/60 rounded-full overflow-hidden">
           <div 
             className={`h-full ${getColor()} transition-all duration-300`} 
             style={{ width: `${(strength / 5) * 100}%` }}
@@ -88,7 +89,6 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  // Removed states for phoneNumber, companyName, and jobTitle
   const [showPassword, setShowPassword] = useState(false);
   const [isTermsAccepted, setIsTermsAccepted] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -99,23 +99,19 @@ export default function Signup() {
     confirmPassword: "",
     terms: "",
     general: ""
-    // Removed validation for phoneNumber and companyName
   });
 
-  // Animação na carga da página
   useEffect(() => {
     setTimeout(() => {
       setIsLoaded(true);
     }, 300);
   }, []);
 
-  // Validação de email
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  // Validação do formulário
   const validateForm = () => {
     const errors = {
       fullName: "",
@@ -124,11 +120,9 @@ export default function Signup() {
       confirmPassword: "",
       terms: "",
       general: ""
-      // Removed validation fields for phoneNumber and companyName
     };
     let isValid = true;
 
-    // Validação de nome completo
     if (!fullName) {
       errors.fullName = "O nome completo é obrigatório";
       isValid = false;
@@ -137,7 +131,6 @@ export default function Signup() {
       isValid = false;
     }
 
-    // Validação de email
     if (!email) {
       errors.email = "O email é obrigatório";
       isValid = false;
@@ -146,9 +139,6 @@ export default function Signup() {
       isValid = false;
     }
 
-    // Removed validation for phoneNumber and companyName
-
-    // Validação de senha
     if (!password) {
       errors.password = "A senha é obrigatória";
       isValid = false;
@@ -157,13 +147,11 @@ export default function Signup() {
       isValid = false;
     }
 
-    // Validação de confirmação de senha
     if (password !== confirmPassword) {
       errors.confirmPassword = "As senhas não coincidem";
       isValid = false;
     }
 
-    // Validação dos termos
     if (!isTermsAccepted) {
       errors.terms = "Você precisa aceitar os termos e condições";
       isValid = false;
@@ -173,7 +161,6 @@ export default function Signup() {
     return isValid;
   };
 
-  // Manipulador de cadastro
   const handleSignup = async (e) => {
     e.preventDefault();
 
@@ -182,9 +169,7 @@ export default function Signup() {
     }
 
     try {
-      // Call signup hook with only email, password, and fullName
       await signup(email, password, fullName);
-      
     } catch (err) {
       console.error("Erro ao fazer cadastro:", err);
       setValidationErrors({
@@ -195,92 +180,83 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#121212] overflow-auto">
-      {/* Background e efeitos */}
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#0c1020] to-[#131a32] overflow-auto">
+      
       <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* Partículas */}
         <div className="absolute inset-0 overflow-hidden">
-          {[...Array(50)].map((_, index) => (
+          {[...Array(30)].map((_, index) => (
             <div 
               key={index} 
-              className="absolute rounded-full bg-orange-500/10"
+              className="absolute rounded-full bg-indigo-500/10"
               style={{
-                width: `${Math.random() * 6 + 1}px`,
-                height: `${Math.random() * 6 + 1}px`,
+                width: `${Math.random() * 4 + 1}px`,
+                height: `${Math.random() * 4 + 1}px`,
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
-                opacity: Math.random() * 0.5 + 0.1,
-                animation: `float ${Math.random() * 50 + 20}s infinite alternate ease-in-out`,
+                opacity: Math.random() * 0.3 + 0.1,
+                animation: `float ${Math.random() * 40 + 20}s infinite alternate ease-in-out`,
                 animationDelay: `${Math.random() * 5}s`
               }}
             />
           ))}
         </div>
 
-        {/* Gradientes */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] rounded-full bg-gradient-to-r from-orange-500/10 to-orange-500/0 blur-[100px] opacity-30 animate-pulse"></div>
-          <div className="absolute -top-[10%] -left-[10%] w-[80vw] h-[80vw] rounded-full bg-gradient-to-r from-amber-600/10 to-amber-600/0 blur-[100px] opacity-20 animate-pulse" style={{animationDuration: '12s'}}></div>
-          <div className="absolute -bottom-[20%] -right-[10%] w-[70vw] h-[70vw] rounded-full bg-gradient-to-r from-orange-700/10 to-orange-700/0 blur-[100px] opacity-20 animate-pulse" style={{animationDuration: '15s'}}></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] rounded-full bg-gradient-to-r from-indigo-500/5 to-indigo-500/0 blur-[80px] opacity-30"></div>
+          <div className="absolute -top-[10%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-gradient-to-r from-indigo-500/5 to-indigo-500/0 blur-[80px] opacity-20"></div>
+          <div className="absolute -bottom-[20%] -right-[10%] w-[40vw] h-[40vw] rounded-full bg-gradient-to-r from-blue-500/5 to-blue-500/0 blur-[80px] opacity-20"></div>
         </div>
-
-        {/* Grid background */}
-        <div className="absolute inset-0 bg-[url('https://flowbite.s3.amazonaws.com/blocks/marketing-ui/hero/grid-pattern-dark.svg')] bg-repeat opacity-[0.03]"></div>
       </div>
 
-      {/* Conteúdo principal */}
       <div className="container mx-auto relative z-10 px-4 py-8 flex flex-col items-center justify-center flex-grow">
-        {/* Header com link de retorno */}
+        
         <div className={cn(
-          "w-full max-w-md mb-8",
+          "w-full max-w-md mb-6",
           isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2",
           "transition-all duration-500"
         )}>
-          <Link to="/" className="inline-flex items-center text-orange-400 hover:text-orange-300 transition-colors">
+          <Link to="/login" className="inline-flex items-center text-blue-300/70 hover:text-white transition-colors">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar para página inicial
+            Voltar para login
           </Link>
         </div>
 
-        {/* Logo */}
         <div className={cn(
-          "mb-8 flex items-center justify-center gap-3",
+          "mb-6 flex items-center justify-center gap-3",
           isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
           "transition-all duration-500 delay-100"
         )}>
-          <Flame className="h-10 w-10 text-orange-500" />
-          <h1 className="text-3xl font-bold text-white">Email<span className="text-orange-500">Insights</span></h1>
+          <div className="p-2 bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-500/30 rounded-lg">
+            <Flame className="h-8 w-8 text-indigo-500" />
+          </div>
+          <h1 className="text-2xl font-bold text-white">Email<span className="text-indigo-500">Insights</span></h1>
         </div>
 
-        {/* Signup Card */}
         <Card className={cn(
-          "w-full max-w-md bg-[#1a1a1a]/90 border-[#333333] text-white rounded-xl backdrop-blur-sm shadow-xl",
+          "w-full max-w-md bg-gradient-to-br from-[#202942] to-[#2a3452] border border-white/8 text-white rounded-xl backdrop-blur-xl shadow-xl",
           isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8",
           "transition-all duration-500 delay-200"
         )}>
-          {/* Orange highlight border */}
-          <div className="h-1 w-full bg-gradient-to-r from-orange-500 via-orange-600 to-amber-700"></div>
           
-          <CardHeader className="space-y-1 pt-8 pb-2">
-            <CardTitle className="text-2xl text-center font-bold bg-gradient-to-r from-white to-slate-300 text-transparent bg-clip-text">
+          <CardHeader className="space-y-1 pt-6 pb-4">
+            <CardTitle className="text-xl text-center font-bold text-white">
               Criar nova conta
             </CardTitle>
-            <p className="text-center text-base text-gray-400">
+            <p className="text-center text-sm text-blue-300/70">
               Preencha os dados para acessar o Email Insights
             </p>
           </CardHeader>
           
-          <CardContent className="pt-6 pb-8">
+          <CardContent className="px-6 pb-6">
             <form onSubmit={handleSignup} className="space-y-4">
-              {/* Full Name Field */}
+              
               <div className="space-y-1">
                 <div className={cn(
                   "relative",
-                  "rounded-lg",
-                  validationErrors.fullName ? "ring-2 ring-red-500/50" : ""
+                  validationErrors.fullName ? "ring-1 ring-red-500/50" : ""
                 )}>
                   <User className={cn(
-                    "absolute left-3 top-3 h-5 w-5 text-orange-400",
+                    "absolute left-3 top-3 h-4 w-4 text-indigo-400",
                     validationErrors.fullName ? "text-red-400" : ""
                   )} />
                   
@@ -295,31 +271,27 @@ export default function Signup() {
                       }
                     }}
                     className={cn(
-                      "pl-10 border rounded-lg py-6",
-                      "bg-[#282828]/50 border-[#333333] text-white placeholder:text-gray-500 focus:border-orange-500",
-                      validationErrors.fullName ? "border-red-500/50" : "",
-                      "transition-all duration-300"
+                      "pl-10 bg-gradient-to-r from-[#0f1631] to-[#192041] border-indigo-500/20 hover:border-indigo-500/40 rounded-lg text-white focus-visible:ring-indigo-500 h-10 transition-all duration-200 placeholder:text-blue-300/50",
+                      validationErrors.fullName ? "border-red-500/50" : ""
                     )}
                   />
                 </div>
                 
                 {validationErrors.fullName && (
-                  <p className="text-red-400 text-xs flex items-center ml-2">
-                    <span className="w-1 h-1 rounded-full bg-red-500 mr-1.5 inline-block"></span>
+                  <p className="text-red-400 text-xs flex items-center gap-1 ml-2">
+                    <AlertCircle className="h-3 w-3" />
                     {validationErrors.fullName}
                   </p>
                 )}
               </div>
 
-              {/* Email Field */}
               <div className="space-y-1">
                 <div className={cn(
                   "relative",
-                  "rounded-lg",
-                  validationErrors.email ? "ring-2 ring-red-500/50" : ""
+                  validationErrors.email ? "ring-1 ring-red-500/50" : ""
                 )}>
                   <Mail className={cn(
-                    "absolute left-3 top-3 h-5 w-5 text-orange-400",
+                    "absolute left-3 top-3 h-4 w-4 text-indigo-400",
                     validationErrors.email ? "text-red-400" : ""
                   )} />
                   
@@ -334,31 +306,27 @@ export default function Signup() {
                       }
                     }}
                     className={cn(
-                      "pl-10 border rounded-lg py-6",
-                      "bg-[#282828]/50 border-[#333333] text-white placeholder:text-gray-500 focus:border-orange-500",
-                      validationErrors.email ? "border-red-500/50" : "",
-                      "transition-all duration-300"
+                      "pl-10 bg-gradient-to-r from-[#0f1631] to-[#192041] border-indigo-500/20 hover:border-indigo-500/40 rounded-lg text-white focus-visible:ring-indigo-500 h-10 transition-all duration-200 placeholder:text-blue-300/50",
+                      validationErrors.email ? "border-red-500/50" : ""
                     )}
                   />
                 </div>
                 
                 {validationErrors.email && (
-                  <p className="text-red-400 text-xs flex items-center ml-2">
-                    <span className="w-1 h-1 rounded-full bg-red-500 mr-1.5 inline-block"></span>
+                  <p className="text-red-400 text-xs flex items-center gap-1 ml-2">
+                    <AlertCircle className="h-3 w-3" />
                     {validationErrors.email}
                   </p>
                 )}
               </div>
 
-              {/* Password Field */}
               <div className="space-y-1">
                 <div className={cn(
                   "relative",
-                  "rounded-lg",
-                  validationErrors.password ? "ring-2 ring-red-500/50" : ""
+                  validationErrors.password ? "ring-1 ring-red-500/50" : ""
                 )}>
                   <Lock className={cn(
-                    "absolute left-3 top-3 h-5 w-5 text-orange-400",
+                    "absolute left-3 top-3 h-4 w-4 text-indigo-400",
                     validationErrors.password ? "text-red-400" : ""
                   )} />
                   
@@ -373,42 +341,37 @@ export default function Signup() {
                       }
                     }}
                     className={cn(
-                      "pl-10 pr-10 border rounded-lg py-6",
-                      "bg-[#282828]/50 border-[#333333] text-white placeholder:text-gray-500 focus:border-orange-500",
-                      validationErrors.password ? "border-red-500/50" : "",
-                      "transition-all duration-300"
+                      "pl-10 pr-10 bg-gradient-to-r from-[#0f1631] to-[#192041] border-indigo-500/20 hover:border-indigo-500/40 rounded-lg text-white focus-visible:ring-indigo-500 h-10 transition-all duration-200 placeholder:text-blue-300/50",
+                      validationErrors.password ? "border-red-500/50" : ""
                     )}
                   />
                   
-                  {/* Toggle password visibility */}
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 transition-all duration-300 text-slate-400 hover:text-orange-400"
+                    className="absolute right-3 top-3 transition-all duration-200 text-blue-300/70 hover:text-indigo-400"
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 
                 {password && <PasswordStrength password={password} />}
                 
                 {validationErrors.password && (
-                  <p className="text-red-400 text-xs flex items-center ml-2">
-                    <span className="w-1 h-1 rounded-full bg-red-500 mr-1.5 inline-block"></span>
+                  <p className="text-red-400 text-xs flex items-center gap-1 ml-2">
+                    <AlertCircle className="h-3 w-3" />
                     {validationErrors.password}
                   </p>
                 )}
               </div>
 
-              {/* Confirm Password Field */}
               <div className="space-y-1">
                 <div className={cn(
                   "relative",
-                  "rounded-lg",
-                  validationErrors.confirmPassword ? "ring-2 ring-red-500/50" : ""
+                  validationErrors.confirmPassword ? "ring-1 ring-red-500/50" : ""
                 )}>
                   <Lock className={cn(
-                    "absolute left-3 top-3 h-5 w-5 text-orange-400",
+                    "absolute left-3 top-3 h-4 w-4 text-indigo-400",
                     validationErrors.confirmPassword ? "text-red-400" : ""
                   )} />
                   
@@ -423,35 +386,31 @@ export default function Signup() {
                       }
                     }}
                     className={cn(
-                      "pl-10 border rounded-lg py-6",
-                      "bg-[#282828]/50 border-[#333333] text-white placeholder:text-gray-500 focus:border-orange-500",
-                      validationErrors.confirmPassword ? "border-red-500/50" : "",
-                      "transition-all duration-300"
+                      "pl-10 pr-10 bg-gradient-to-r from-[#0f1631] to-[#192041] border-indigo-500/20 hover:border-indigo-500/40 rounded-lg text-white focus-visible:ring-indigo-500 h-10 transition-all duration-200 placeholder:text-blue-300/50",
+                      validationErrors.confirmPassword ? "border-red-500/50" : ""
                     )}
                   />
                   
-                  {/* Password match indicator */}
                   {confirmPassword && (
                     <div className="absolute right-3 top-3">
                       {password === confirmPassword ? (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        <CheckCircle className="h-4 w-4 text-green-400" />
                       ) : (
-                        <X className="h-5 w-5 text-red-500" />
+                        <X className="h-4 w-4 text-red-400" />
                       )}
                     </div>
                   )}
                 </div>
                 
                 {validationErrors.confirmPassword && (
-                  <p className="text-red-400 text-xs flex items-center ml-2">
-                    <span className="w-1 h-1 rounded-full bg-red-500 mr-1.5 inline-block"></span>
+                  <p className="text-red-400 text-xs flex items-center gap-1 ml-2">
+                    <AlertCircle className="h-3 w-3" />
                     {validationErrors.confirmPassword}
                   </p>
                 )}
               </div>
 
-              {/* Terms and conditions */}
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <div className="flex items-start space-x-2">
                   <div className="relative inline-flex items-center mt-0.5">
                     <input
@@ -465,11 +424,11 @@ export default function Signup() {
                         }
                       }}
                       className={cn(
-                        "w-4 h-4 rounded transition-colors duration-300 focus:ring-2 focus:ring-offset-2 cursor-pointer",
-                        "border-2 appearance-none relative",
-                        isTermsAccepted ? "bg-orange-600 border-orange-600" : "bg-[#282828] border-[#333333]",
-                        "focus:ring-orange-500 focus:ring-offset-[#1a1a1a]",
-                        validationErrors.terms ? "ring-2 ring-red-500/50" : ""
+                        "w-4 h-4 rounded transition-colors duration-200 focus:ring-2 focus:ring-offset-2 cursor-pointer",
+                        "border-2 appearance-none relative bg-gradient-to-r from-[#0f1631] to-[#192041]",
+                        isTermsAccepted ? "border-indigo-500 bg-indigo-500" : "border-indigo-500/30",
+                        "focus:ring-indigo-500",
+                        validationErrors.terms ? "ring-1 ring-red-500/50" : ""
                       )}
                     />
                     {isTermsAccepted && (
@@ -484,53 +443,54 @@ export default function Signup() {
                       </svg>
                     )}
                   </div>
-                  <label htmlFor="terms" className="text-sm text-gray-400">
-                    Eu concordo com os <Link to="/terms" className="text-orange-400 hover:text-orange-300 transition-colors">Termos e Condições</Link> e <Link to="/privacy" className="text-orange-400 hover:text-orange-300 transition-colors">Política de Privacidade</Link>
+                  <label htmlFor="terms" className="text-sm text-blue-300/70">
+                    Eu concordo com os <Link to="/terms" className="text-indigo-400 hover:text-indigo-300 transition-colors">Termos e Condições</Link> e <Link to="/privacy" className="text-indigo-400 hover:text-indigo-300 transition-colors">Política de Privacidade</Link>
                   </label>
                 </div>
                 
                 {validationErrors.terms && (
-                  <p className="text-red-400 text-xs flex items-center ml-2">
-                    <span className="w-1 h-1 rounded-full bg-red-500 mr-1.5 inline-block"></span>
+                  <p className="text-red-400 text-xs flex items-center gap-1 ml-6">
+                    <AlertCircle className="h-3 w-3" />
                     {validationErrors.terms}
                   </p>
                 )}
               </div>
 
-              {/* Error message */}
               {(error || validationErrors.general) && (
-                <div className="rounded-lg p-4 text-center border bg-red-500/10 border-red-500/30 text-red-400">
-                  <p className="text-sm font-medium">
+                <div className="rounded-lg p-3 bg-red-500/10 border border-red-500/30 backdrop-blur-sm">
+                  <p className="text-sm text-red-300 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
                     {error || validationErrors.general}
                   </p>
                 </div>
               )}
 
-              {/* Email Security Notice */}
-              <div className="rounded-lg p-3 bg-orange-500/5 border border-orange-500/10 flex items-start gap-2">
-                <ShieldCheck className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-gray-400">
-                  Nossa plataforma segue as melhores práticas de segurança para email marketing. Seus dados estão seguros e são tratados de acordo com as regulamentações de proteção de dados.
-                </p>
+              <div className="rounded-lg p-3 bg-indigo-500/10 border border-indigo-500/20 backdrop-blur-sm">
+                <div className="flex items-start gap-2">
+                  <ShieldCheck className="h-4 w-4 text-indigo-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-blue-300/70">
+                    Nossa plataforma segue as melhores práticas de segurança para email marketing. Seus dados estão seguros e são tratados de acordo com as regulamentações de proteção de dados.
+                  </p>
+                </div>
               </div>
 
-              {/* Signup Button */}
               <div className="pt-2">
                 <Button 
                   type="submit"
                   className={cn(
                     "w-full flex items-center justify-center gap-2 rounded-lg",
-                    "font-medium text-white py-6",
-                    "transition-all duration-300",
-                    "bg-orange-600 hover:bg-orange-700",
-                    "shadow-lg shadow-orange-600/20",
-                    isPending ? "opacity-90 cursor-not-allowed" : ""
+                    "px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg",
+                    isPending ? "opacity-80 cursor-not-allowed" : ""
                   )}
                   disabled={isPending}
                 >
                   {isPending ? (
                     <>
-                      <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
                       <span>Criando conta...</span>
                     </>
                   ) : (
@@ -539,13 +499,12 @@ export default function Signup() {
                 </Button>
               </div>
               
-              {/* Login link */}
-              <div className="text-center pt-3">
-                <p className="text-sm text-gray-400">
+              <div className="text-center pt-2">
+                <p className="text-sm text-blue-300/70">
                   Já tem uma conta?{' '}
                   <Link
                     to="/login"
-                    className="text-orange-400 hover:text-orange-300 transition-colors font-medium"
+                    className="text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
                   >
                     Faça login
                   </Link>
@@ -555,9 +514,8 @@ export default function Signup() {
           </CardContent>
         </Card>
 
-        {/* Footer */}
         <div className={cn(
-          "mt-8 mb-4 text-center text-xs text-slate-600",
+          "mt-6 mb-4 text-center text-xs text-blue-300/50",
           isLoaded ? "opacity-100" : "opacity-0",
           "transition-opacity duration-500 delay-300"
         )}>
@@ -565,17 +523,10 @@ export default function Signup() {
         </div>
       </div>
 
-      {/* CSS Styles */}
       <style jsx="true">{`
         @keyframes float {
           0% { transform: translate(0, 0); }
-          100% { transform: translate(10px, 10px); }
-        }
-        
-        @keyframes pulse {
-          0% { opacity: var(--opacity, 0.3); }
-          50% { opacity: calc(var(--opacity, 0.3) * 0.6); }
-          100% { opacity: var(--opacity, 0.3); }
+          100% { transform: translate(8px, 8px); }
         }
       `}</style>
     </div>

@@ -10,7 +10,6 @@ import { MetricsProvider, useMetrics } from "./contexts/MetricsContext";
 
 import { EmailSidebar } from './components/EmailSidebar.jsx';
 
-
 import DashboardOverview from './pages/Dashboard/DashboardOverview';
 import DashboardMetrics from './pages/Dashboard/DashboardMetrics';
 import DashboardEmails from './pages/Dashboard/DashboardEmails';
@@ -169,20 +168,24 @@ const DashboardContent = () => {
   
   if ((emailMetricsLoading && !loadError && loadAttempts < 3) && !isLoaded) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ background: 'var(--bg-dark-primary)' }}>
-        <div className="flex flex-col items-center gap-4">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-[#0c1020] to-[#131a32]">
+        <div className="flex flex-col items-center gap-6">
           <div className="relative">
-            <div className="absolute inset-0 bg-orange-500/20 blur-xl animate-pulse"></div>
-            <div className="animate-pulse-glow">
-              <Flame className="h-16 w-16 text-orange-500 relative z-10" />
+            <div className="absolute inset-0 bg-orange-500/20 blur-xl animate-pulse rounded-full"></div>
+            <div className="relative z-10 p-4 bg-gradient-to-br from-[#202942] to-[#2a3452] border border-indigo-500/30 rounded-full shadow-xl">
+              <Flame className="h-16 w-16 text-indigo-500 animate-pulse" />
             </div>
           </div>
-          <div className="text-center animate-fadeInUp">
+          <div className="text-center">
             <h2 className="text-2xl font-bold text-white mb-2">Carregando Dashboard</h2>
-            <p className="text-slate-400">Preparando seus dados de email marketing...</p>
+            <p className="text-blue-300/70">Preparando seus dados de email marketing...</p>
           </div>
-          <div className="mt-6">
-            <div className="spinner-modern"></div>
+                      <div className="mt-4">
+            <div className="flex space-x-2">
+              <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            </div>
           </div>
         </div>
       </div>
@@ -191,23 +194,23 @@ const DashboardContent = () => {
   
   if (loadError) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ background: 'var(--bg-dark-primary)' }}>
-        <div className="flex flex-col items-center gap-4 max-w-lg mx-auto p-6 bg-slate-800 rounded-lg shadow-xl">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-[#0c1020] to-[#131a32]">
+        <div className="flex flex-col items-center gap-4 max-w-lg mx-auto p-6 bg-gradient-to-br from-[#202942] to-[#2a3452] border border-white/8 rounded-xl shadow-xl">
+          <div className="p-3 bg-indigo-500/20 border border-indigo-500/30 rounded-lg">
+            <AlertCircle className="h-12 w-12 text-indigo-500" />
+          </div>
           <div className="text-center">
-            <div className="flex items-center justify-center mb-4">
-              <AlertCircle className="h-12 w-12 text-orange-500" />
-            </div>
             <h2 className="text-2xl font-bold text-white mb-2">Erro ao carregar dados</h2>
-            <p className="text-slate-300 mb-4">{loadError}</p>
+            <p className="text-blue-300/70 mb-4">{loadError}</p>
             
-            <div className="mb-4 p-4 bg-slate-700 rounded-lg">
-              <p className="text-slate-300 mb-2">
+            <div className="mb-4 p-4 bg-[#0f1631]/60 backdrop-blur-sm border border-indigo-500/20 rounded-lg">
+              <p className="text-blue-300/70 mb-3">
                 Parece que estamos tendo problemas com os filtros selecionados. 
                 Tentar resetar os filtros pode resolver o problema.
               </p>
               <button
                 onClick={resetFiltersAndRetry}
-                className="mt-2 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
+                className="w-full px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
               >
                 Resetar filtros e tentar novamente
               </button>
@@ -215,8 +218,9 @@ const DashboardContent = () => {
             
             <button
               onClick={refreshData}
-              className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2 mx-auto"
             >
+              <RefreshCw className="h-4 w-4" />
               Tentar novamente
             </button>
           </div>
@@ -224,16 +228,18 @@ const DashboardContent = () => {
       </div>
     );
   }
-  
-
 
   return (
-    <div className={`flex h-screen overflow-hidden ${mounted ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500 relative`} style={{ background: 'var(--bg-dark-primary)' }}>
+    <div className={`flex h-screen overflow-hidden bg-gradient-to-b from-[#0c1020] to-[#131a32] ${mounted ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500 relative`}>
       {isFiltering && (
         <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-slate-800 rounded-lg p-6 shadow-xl">
+          <div className="bg-gradient-to-br from-[#202942] to-[#2a3452] border border-white/8 rounded-xl p-6 shadow-xl">
             <div className="flex flex-col items-center gap-3">
-              <div className="spinner-modern"></div>
+              <div className="flex space-x-2">
+                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              </div>
               <p className="text-white">Atualizando dados...</p>
             </div>
           </div>
@@ -242,7 +248,7 @@ const DashboardContent = () => {
       
       <div className={`sidebar-container h-full ${isMobile ? 'fixed z-50' : 'relative'} 
         ${isMobile && !sidebarVisible ? 'translate-x-[-100%]' : 'translate-x-0'} 
-        transition-transform duration-300 ease-in-out sidebar-modern`}>
+        transition-transform duration-300 ease-in-out`}>
         <div 
           className={`h-full transition-all duration-300 ease-in-out overflow-hidden ${
             collapsed ? "w-[70px]" : "w-[240px]"
@@ -268,12 +274,8 @@ const DashboardContent = () => {
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="flex items-center justify-center w-6 h-6 rounded-full 
-                      text-white shadow-lg border-2 animate-pulse-glow
-                      hover:bg-orange-700 transition-colors"
-            style={{ 
-              background: 'bg-blue-600',
-              borderColor: 'var(--bg-dark-primary)'
-            }}
+                      bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg border border-white/10
+                      hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 hover:scale-110"
           >
             {collapsed ? (
               <ChevronsRight className="h-3.5 w-3.5" />
@@ -296,12 +298,11 @@ const DashboardContent = () => {
         className={`flex-1 overflow-auto transition-all duration-300 ease-in-out ${
           mounted ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
         }`}
-        style={{ background: 'var(--bg-dark-primary)' }}
       >
         {isMobile && (
           <button
             onClick={toggleMobileSidebar}
-            className="fixed top-4 left-4 z-30 text-white rounded-lg p-2 shadow-lg button-modern"
+            className="fixed top-4 left-4 z-30 bg-gradient-to-r from-[#202942] to-[#2a3452] border border-white/8 text-white rounded-lg p-2 shadow-lg backdrop-blur-sm hover:from-[#2a3452] hover:to-[#323a5c] transition-all duration-200"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -320,9 +321,9 @@ const DashboardContent = () => {
         {isMobile && (
           <button
             className="fixed bottom-6 right-6 z-30 w-14 h-14 rounded-full
-                      text-white flex items-center justify-center shadow-lg hover:bg-orange-700 
-                      transition-all duration-200 transform hover:scale-105 button-modern animate-pulse-glow"
-            style={{ background: 'var(--gradient-orange)' }}
+                      bg-gradient-to-r from-indigo-600 to-blue-600 text-white flex items-center justify-center 
+                      shadow-xl hover:from-indigo-700 hover:to-blue-700 
+                      transition-all duration-200 transform hover:scale-105 border border-indigo-500/30"
             onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}
           >
             <span className="text-2xl font-bold">↑</span>
@@ -338,15 +339,24 @@ const AuthenticatedRoutes = () => {
 
   if (!authIsReady) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ background: 'var(--bg-dark-primary)' }}>
-        <div className="flex flex-col items-center gap-4">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-[#0c1020] to-[#131a32]">
+        <div className="flex flex-col items-center gap-6">
           <div className="relative">
-            <div className="absolute inset-0 bg-orange-500/20 blur-xl animate-pulse"></div>
-            <Flame className="h-16 w-16 text-orange-500 relative z-10" />
+            <div className="absolute inset-0 bg-indigo-500/20 blur-xl animate-pulse rounded-full"></div>
+            <div className="relative z-10 p-4 bg-gradient-to-br from-[#202942] to-[#2a3452] border border-indigo-500/30 rounded-full shadow-xl">
+              <Flame className="h-16 w-16 text-indigo-500 animate-pulse" />
+            </div>
           </div>
           <div className="text-center">
             <h2 className="text-2xl font-bold text-white mb-2">Carregando</h2>
-            <p className="text-slate-400">Verificando autenticação...</p>
+            <p className="text-blue-300/70">Verificando autenticação...</p>
+          </div>
+          <div className="mt-4">
+            <div className="flex space-x-2">
+              <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            </div>
           </div>
         </div>
       </div>

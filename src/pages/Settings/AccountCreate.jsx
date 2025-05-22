@@ -15,6 +15,7 @@ const AccountCreate = () => {
   
   const [isLoading, setIsLoading] = useState(false);
   const [webhookLoading, setWebhookLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [formState, setFormState] = useState({
     name: '',
     provider: 'mautic',
@@ -38,14 +39,9 @@ const AccountCreate = () => {
   });
   
   useEffect(() => {
-    if (formRef.current) {
-      const formItems = formRef.current.querySelectorAll('.stagger-item');
-      formItems.forEach((item, index) => {
-        setTimeout(() => {
-          item.classList.add('stagger-item-visible');
-        }, 100 + (index * 80));
-      });
-    }
+    setTimeout(() => {
+      setMounted(true);
+    }, 200);
   }, []);
   
   const handleInputChange = (e) => {
@@ -260,302 +256,327 @@ const AccountCreate = () => {
   };
   
   return (
-    <div className="px-4 sm:px-6 md:px-8 py-6 max-w-[1600px] mx-auto">
+    <div className={`px-6 py-8 w-full overflow-auto bg-gradient-to-b from-[#0c1020] to-[#131a32] min-h-screen transition-all duration-500 ${
+      mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+    }`}>
+      
       {feedback.show && (
         <div 
-          className={`fixed top-6 right-6 z-50 max-w-md px-6 py-4 rounded-lg shadow-lg transition-all duration-500 transform translate-y-0 opacity-100 ${
-            feedback.type === 'success' 
-              ? 'bg-green-900/80 border border-green-700' 
-              : 'bg-red-900/80 border border-red-700'
+          className={`fixed top-6 right-6 z-50 max-w-md transition-all duration-500 transform ${
+            feedback.show ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'
           }`}
-          style={{ backdropFilter: 'blur(8px)' }}
         >
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              {feedback.type === 'success' ? (
-                <CheckCheck className="h-5 w-5 text-green-400" />
-              ) : (
-                <AlertCircle className="h-5 w-5 text-red-400" />
-              )}
-              <div>
-                <h4 className="font-medium text-white">{feedback.title}</h4>
-                <p className={`text-sm ${feedback.type === 'success' ? 'text-green-200' : 'text-red-200'}`}>
-                  {feedback.message}
-                </p>
+          <div 
+            className={`px-6 py-4 rounded-xl shadow-xl backdrop-blur-xl border ${
+              feedback.type === 'success' 
+                ? 'bg-green-900/80 border-green-500/30' 
+                : 'bg-red-900/80 border-red-500/30'
+            }`}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                {feedback.type === 'success' ? (
+                  <CheckCheck className="h-5 w-5 text-green-400" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 text-red-400" />
+                )}
+                <div>
+                  <h4 className="font-medium text-white">{feedback.title}</h4>
+                  <p className={`text-sm ${feedback.type === 'success' ? 'text-green-200' : 'text-red-200'}`}>
+                    {feedback.message}
+                  </p>
+                </div>
               </div>
+              <button 
+                onClick={() => setFeedback(prev => ({ ...prev, show: false }))}
+                className="text-white/70 hover:text-white transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
-            <button 
-              onClick={() => setFeedback(prev => ({ ...prev, show: false }))}
-              className="text-white/70 hover:text-white"
-            >
-              <X className="h-4 w-4" />
-            </button>
           </div>
         </div>
       )}
       
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 stagger-item">
-        <div>
-          <h1 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: 'var(--font-primary)' }}>
-            Nova Conta
-          </h1>
-          <p className="text-slate-400">
-            Configure uma nova conta para integração com o Mautic
-          </p>
-        </div>
-        
-        <Button
-          onClick={() => navigate('/')}
-          variant="outline"
-          className="button-modern text-white border-slate-700"
-        >
-          Voltar para Dashboard
-        </Button>
-      </div>
-      
-      <Card className="card-modern stagger-item border-slate-800 shadow-lg mb-8">
-        <CardHeader className="pb-2 pt-5 px-6">
-          <div className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5 text-orange-500" />
-            <CardTitle className="text-lg font-semibold text-white">
-              Informações da Conta
-            </CardTitle>
-          </div>
-        </CardHeader>
-        
-        <CardContent className="p-6">
-          <form onSubmit={handleSubmit} ref={formRef}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex flex-col gap-3 stagger-item">
-                <Label 
-                  htmlFor="name" 
-                  className="text-slate-200 flex items-center gap-1.5"
-                >
-                  <Layers className="h-4 w-4 text-orange-400" />
-                  Nome da Conta
-                </Label>
-                <Input 
-                  id="name"
-                  name="name"
-                  placeholder="Ex: Marketing Principal"
-                  className="input-modern"
-                  value={formState.name}
-                  onChange={handleInputChange}
-                  autoComplete="off"
-                />
-                {validationErrors.name && (
-                  <p className="text-red-400 text-xs">{validationErrors.name}</p>
-                )}
+      <div className="mx-auto max-w-full">
+        <div className="relative mb-8 animate-fade-in">
+          <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <div className="flex items-center">
+                <h1 className="text-3xl font-bold text-white tracking-tight">Nova Conta</h1>
               </div>
-              
-              <div className="flex flex-col gap-3 stagger-item">
-                <Label 
-                  htmlFor="provider" 
-                  className="text-slate-200 flex items-center gap-1.5"
-                >
-                  <Database className="h-4 w-4 text-orange-400" />
-                  Provedor
-                </Label>
-                <Select
-                  onValueChange={(value) => handleSelectChange('provider', value)}
-                  defaultValue={formState.provider}
-                >
-                  <SelectTrigger id="provider" className="select-modern">
-                    <SelectValue placeholder="Selecione o provedor" />
-                  </SelectTrigger>
-                  <SelectContent className="dropdown-modern">
-                    <SelectItem value="mautic">Mautic</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex flex-col gap-3 stagger-item">
-                <Label 
-                  htmlFor="url" 
-                  className="text-slate-200 flex items-center gap-1.5"
-                >
-                  <Server className="h-4 w-4 text-orange-400" />
-                  URL do Mautic
-                </Label>
-                <Input 
-                  id="url"
-                  name="url"
-                  placeholder="https://mautic.seudominio.com"
-                  className="input-modern"
-                  value={formState.url}
-                  onChange={handleInputChange}
-                  autoComplete="url"
-                />
-                {validationErrors.url && (
-                  <p className="text-red-400 text-xs">{validationErrors.url}</p>
-                )}
-              </div>
-              
-              <div className="flex flex-col gap-3 stagger-item">
-                <Label 
-                  htmlFor="username" 
-                  className="text-slate-200 flex items-center gap-1.5"
-                >
-                  <User className="h-4 w-4 text-orange-400" />
-                  Nome de Usuário
-                </Label>
-                <Input 
-                  id="username"
-                  name="username"
-                  placeholder="Seu nome de usuário do Mautic"
-                  className="input-modern"
-                  value={formState.username}
-                  onChange={handleInputChange}
-                  autoComplete="username"
-                />
-                {validationErrors.username && (
-                  <p className="text-red-400 text-xs">{validationErrors.username}</p>
-                )}
-              </div>
-              
-              <div className="flex flex-col gap-3 stagger-item">
-                <Label 
-                  htmlFor="password" 
-                  className="text-slate-200 flex items-center gap-1.5"
-                >
-                  <Lock className="h-4 w-4 text-orange-400" />
-                  Senha
-                </Label>
-                <Input 
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="Sua senha do Mautic"
-                  className="input-modern"
-                  value={formState.password}
-                  onChange={handleInputChange}
-                  autoComplete="current-password"
-                />
-                {validationErrors.password && (
-                  <p className="text-red-400 text-xs">{validationErrors.password}</p>
-                )}
-              </div>
-            </div>
-            
-            <div className="mt-8 border-t border-slate-700 pt-6 stagger-item">
-              <Label className="text-slate-200 flex items-center gap-1.5 mb-3">
-                <Link className="h-4 w-4 text-orange-400" />
-                URL do Webhook
-              </Label>
-              
-              <div className="flex items-center gap-2 mb-3">
-                <div 
-                  ref={webhookUrlRef} 
-                  className="bg-slate-900 text-white px-4 py-3 rounded-md font-mono text-sm flex-1 overflow-hidden border border-slate-600 shadow-inner"
-                >
-                  {webhookInfo.webhookUrl || "URL do webhook será gerada após a criação da conta"}
-                </div>
-                
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="whitespace-nowrap button-modern border-slate-700 text-white hover:bg-slate-700"
-                  onClick={copyWebhookUrl}
-                  disabled={!webhookInfo.webhookUrl}
-                >
-                  {webhookInfo.copied ? (
-                    <>
-                      <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                      Copiado
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copiar URL
-                    </>
-                  )}
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="whitespace-nowrap button-modern border-slate-700 text-white hover:bg-slate-700"
-                  onClick={regenerateWebhook}
-                  disabled={webhookLoading || !webhookInfo.accountId}
-                >
-                  {webhookLoading ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              
-              <p className="text-slate-300 text-sm mb-3">
-                Configure esta URL no seu painel Mautic para receber eventos de emails.
+              <p className="text-blue-300/80 mt-2">
+                Configure uma nova conta para integração com o Mautic
               </p>
-              
-              {webhookInfo.webhookUrl && (
-                <div className="flex items-center gap-2 mt-4">
-                  <Button
-                    onClick={() => navigate('/')}
-                    className="button-modern"
-                    style={{ 
-                      background: 'var(--gradient-orange)',
-                    }}
-                  >
-                    Ir para Dashboard
-                  </Button>
-                </div>
-              )}
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-3 mt-8 stagger-item">
-              <Button 
-                type="submit"
-                className="button-modern"
-                disabled={isLoading}
-                style={{ 
-                  background: 'var(--gradient-orange)',
-                }}
+            <div className="flex gap-2">
+              <Button
+                onClick={() => navigate('/')}
+                variant="outline"
+                className="h-10 px-4 bg-gradient-to-r from-[#0f1631] to-[#192041] border-indigo-500/20 hover:border-indigo-500/40 text-white rounded-lg shadow-md transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/10"
               >
-                {isLoading ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Processando...
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Criar Conta
-                  </>
-                )}
+                Voltar para Dashboard
               </Button>
             </div>
-          </form>
-        </CardContent>
-      </Card>
-      
-      <Card className="card-modern stagger-item border-slate-800 shadow-lg">
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="bg-orange-500/10 text-orange-500 p-3 rounded-lg">
-              <Server className="h-6 w-6" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-white mb-2">Instruções para Webhook</h3>
-              <p className="text-slate-300 mb-3 text-sm">
-                Após criar a conta, você receberá uma URL de webhook. Esta URL deve ser configurada no seu painel Mautic em:
-              </p>
-              <ol className="text-slate-300 space-y-2 text-sm list-decimal pl-4">
-                <li>Acesse seu painel do Mautic e navegue até Configurações</li>
-                <li>Clique em "Webhooks" no menu lateral</li>
-                <li>Adicione um novo webhook com a URL fornecida</li>
-                <li>Configure os eventos: email_on_open, email_on_send, email_on_click, email_on_bounce, email_on_unsubscribe</li>
-              </ol>
-              <p className="text-amber-400 text-sm mt-4 flex items-center gap-1">
-                <AlertCircle className="h-4 w-4" />
-                Após criar a conta, copie a URL do webhook fornecida para configurar no seu Mautic
-              </p>
-            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        
+        <Card className="bg-gradient-to-br from-[#202942] to-[#2a3452] border border-white/8 rounded-xl shadow-xl mb-8 animate-fade-in">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5 text-indigo-500" />
+              <CardTitle className="text-lg font-semibold text-white">
+                Informações da Conta
+              </CardTitle>
+            </div>
+          </CardHeader>
+          
+          <CardContent className="p-6">
+            <form onSubmit={handleSubmit} ref={formRef}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex flex-col gap-3">
+                  <Label 
+                    htmlFor="name" 
+                    className="text-blue-300/80 flex items-center gap-1.5 font-medium"
+                  >
+                    <Layers className="h-4 w-4 text-indigo-400" />
+                    Nome da Conta
+                  </Label>
+                  <Input 
+                    id="name"
+                    name="name"
+                    placeholder="Ex: Marketing Principal"
+                    className="w-full bg-gradient-to-r from-[#0f1631] to-[#192041] border-indigo-500/20 hover:border-indigo-500/40 rounded-lg text-white focus-visible:ring-indigo-500 h-11 transition-all duration-200"
+                    value={formState.name}
+                    onChange={handleInputChange}
+                    autoComplete="off"
+                  />
+                  {validationErrors.name && (
+                    <p className="text-red-400 text-xs flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {validationErrors.name}
+                    </p>
+                  )}
+                </div>
+                
+                <div className="flex flex-col gap-3">
+                  <Label 
+                    htmlFor="provider" 
+                    className="text-blue-300/80 flex items-center gap-1.5 font-medium"
+                  >
+                    <Database className="h-4 w-4 text-indigo-400" />
+                    Provedor
+                  </Label>
+                  <Select
+                    onValueChange={(value) => handleSelectChange('provider', value)}
+                    defaultValue={formState.provider}
+                  >
+                    <SelectTrigger 
+                      id="provider" 
+                      className="w-full bg-gradient-to-r from-[#0f1631] to-[#192041] border-indigo-500/20 hover:border-indigo-500/40 rounded-lg text-white focus-visible:ring-indigo-500 h-11 transition-all duration-200"
+                    >
+                      <SelectValue placeholder="Selecione o provedor" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#202942] border-indigo-500/20 rounded-lg">
+                      <SelectItem value="mautic" className="text-white hover:bg-indigo-500/20">Mautic</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex flex-col gap-3">
+                  <Label 
+                    htmlFor="url" 
+                    className="text-blue-300/80 flex items-center gap-1.5 font-medium"
+                  >
+                    <Server className="h-4 w-4 text-indigo-400" />
+                    URL do Mautic
+                  </Label>
+                  <Input 
+                    id="url"
+                    name="url"
+                    placeholder="https://mautic.seudominio.com"
+                    className="w-full bg-gradient-to-r from-[#0f1631] to-[#192041] border-indigo-500/20 hover:border-indigo-500/40 rounded-lg text-white focus-visible:ring-indigo-500 h-11 transition-all duration-200"
+                    value={formState.url}
+                    onChange={handleInputChange}
+                    autoComplete="url"
+                  />
+                  {validationErrors.url && (
+                    <p className="text-red-400 text-xs flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {validationErrors.url}
+                    </p>
+                  )}
+                </div>
+                
+                <div className="flex flex-col gap-3">
+                  <Label 
+                    htmlFor="username" 
+                    className="text-blue-300/80 flex items-center gap-1.5 font-medium"
+                  >
+                    <User className="h-4 w-4 text-indigo-400" />
+                    Nome de Usuário
+                  </Label>
+                  <Input 
+                    id="username"
+                    name="username"
+                    placeholder="Seu nome de usuário do Mautic"
+                    className="w-full bg-gradient-to-r from-[#0f1631] to-[#192041] border-indigo-500/20 hover:border-indigo-500/40 rounded-lg text-white focus-visible:ring-indigo-500 h-11 transition-all duration-200"
+                    value={formState.username}
+                    onChange={handleInputChange}
+                    autoComplete="username"
+                  />
+                  {validationErrors.username && (
+                    <p className="text-red-400 text-xs flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {validationErrors.username}
+                    </p>
+                  )}
+                </div>
+                
+                <div className="flex flex-col gap-3 md:col-span-2">
+                  <Label 
+                    htmlFor="password" 
+                    className="text-blue-300/80 flex items-center gap-1.5 font-medium"
+                  >
+                    <Lock className="h-4 w-4 text-indigo-400" />
+                    Senha
+                  </Label>
+                  <Input 
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="Sua senha do Mautic"
+                    className="w-full bg-gradient-to-r from-[#0f1631] to-[#192041] border-indigo-500/20 hover:border-indigo-500/40 rounded-lg text-white focus-visible:ring-indigo-500 h-11 transition-all duration-200"
+                    value={formState.password}
+                    onChange={handleInputChange}
+                    autoComplete="current-password"
+                  />
+                  {validationErrors.password && (
+                    <p className="text-red-400 text-xs flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {validationErrors.password}
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="mt-8 border-t border-white/10 pt-6">
+                <Label className="text-blue-300/80 flex items-center gap-1.5 mb-3 font-medium">
+                  <Link className="h-4 w-4 text-indigo-400" />
+                  URL do Webhook
+                </Label>
+                
+                <div className="flex items-center gap-2 mb-3">
+                  <div 
+                    ref={webhookUrlRef} 
+                    className="bg-[#0f1631]/60 backdrop-blur-sm border border-indigo-500/20 text-white px-4 py-3 rounded-lg font-mono text-sm flex-1 overflow-hidden shadow-inner"
+                  >
+                    {webhookInfo.webhookUrl || "URL do webhook será gerada após a criação da conta"}
+                  </div>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-11 px-3 bg-gradient-to-r from-[#0f1631] to-[#192041] border-indigo-500/20 hover:border-indigo-500/40 text-white rounded-lg shadow-md transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/10"
+                    onClick={copyWebhookUrl}
+                    disabled={!webhookInfo.webhookUrl}
+                  >
+                    {webhookInfo.copied ? (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2 text-green-400" />
+                        Copiado
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copiar URL
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-11 px-3 bg-gradient-to-r from-[#0f1631] to-[#192041] border-indigo-500/20 hover:border-indigo-500/40 text-white rounded-lg shadow-md transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/10"
+                    onClick={regenerateWebhook}
+                    disabled={webhookLoading || !webhookInfo.accountId}
+                  >
+                    {webhookLoading ? (
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                
+                <p className="text-blue-300/70 text-sm mb-3">
+                  Configure esta URL no seu painel Mautic para receber eventos de emails.
+                </p>
+                
+                {webhookInfo.webhookUrl && (
+                  <div className="flex items-center gap-2 mt-4">
+                    <Button
+                      onClick={() => navigate('/')}
+                      className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                    >
+                      Ir para Dashboard
+                    </Button>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3 mt-8">
+                <Button 
+                  type="submit"
+                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Criar Conta
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-[#202942] to-[#2a3452] border border-white/8 rounded-xl shadow-xl animate-fade-in">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="bg-indigo-500/20 text-indigo-400 p-3 rounded-lg border border-indigo-500/30">
+                <Server className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-2">Instruções para Webhook</h3>
+                <p className="text-blue-300/70 mb-3 text-sm">
+                  Após criar a conta, você receberá uma URL de webhook. Esta URL deve ser configurada no seu painel Mautic em:
+                </p>
+                <ol className="text-blue-300/70 space-y-2 text-sm list-decimal pl-4">
+                  <li>Acesse seu painel do Mautic e navegue até Configurações</li>
+                  <li>Clique em "Webhooks" no menu lateral</li>
+                  <li>Adicione um novo webhook com a URL fornecida</li>
+                  <li>Configure os eventos: email_on_open, email_on_send, email_on_click, email_on_bounce, email_on_unsubscribe</li>
+                </ol>
+                <div className="mt-4 p-3 bg-indigo-500/10 border border-indigo-500/30 rounded-lg">
+                  <p className="text-indigo-300 text-sm flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    Após criar a conta, copie a URL do webhook fornecida para configurar no seu Mautic
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

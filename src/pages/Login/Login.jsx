@@ -7,36 +7,24 @@ import { cn } from "@/lib/utils.js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-  DialogFooter
-} from "@/components/ui/dialog";
 
 // Icons
 import { 
   Mail, 
   Lock, 
-  ArrowLeft, 
-  LogIn, 
   Eye, 
   EyeOff, 
-  AlertTriangle, 
-  Power,
   Flame,
-  Phone
+  AlertCircle,
+  LogIn
 } from 'lucide-react';
 
 export default function Login() {
-  const { login, isPending, error, accountStatus, clearAccountStatus } = useLogin();
+  const { login, isPending, error } = useLogin();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [validationErrors, setValidationErrors] = useState({
     email: "",
@@ -44,35 +32,17 @@ export default function Login() {
     general: ""
   });
 
-  // Verificar status da conta na inicialização
-  useEffect(() => {
-    if (accountStatus) {
-      setStatusDialogOpen(true);
-    }
-  }, [accountStatus]);
-
-  // Evitar fechamento do diálogo quando accountStatus existe
-  const handleOpenChange = (open) => {
-    if (!open && accountStatus) {
-      return; 
-    }
-    setStatusDialogOpen(open);
-  };
-
-  // Animação na carga da página
   useEffect(() => {
     setTimeout(() => {
       setIsLoaded(true);
     }, 300);
   }, []);
 
-  // Validação de email
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  // Validação do formulário
   const validateForm = () => {
     const errors = {
       email: "",
@@ -81,7 +51,6 @@ export default function Login() {
     };
     let isValid = true;
 
-    // Validação de email
     if (!email) {
       errors.email = "O email é obrigatório";
       isValid = false;
@@ -90,7 +59,6 @@ export default function Login() {
       isValid = false;
     }
 
-    // Validação de senha
     if (!password) {
       errors.password = "A senha é obrigatória";
       isValid = false;
@@ -103,7 +71,6 @@ export default function Login() {
     return isValid;
   };
 
-  // Manipulador de login
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -112,135 +79,83 @@ export default function Login() {
     }
 
     try {
-      // Limpar erros gerais antes de tentar login
-      setValidationErrors({
-        ...validationErrors,
-        general: ""
-      });
-      
       await login(email, password);
-      
     } catch (err) {
       console.error("Erro ao fazer login:", err);
       setValidationErrors({
         ...validationErrors,
-        general: "Ocorreu um erro ao tentar fazer login. Tente novamente."
+        general: "Erro ao fazer login. Verifique suas credenciais."
       });
     }
   };
 
-  // Fechar diálogo e limpar estado
-  const handleCloseDialog = () => {
-    clearAccountStatus();
-    setStatusDialogOpen(false);
-    
-    // Limpar campos do formulário
-    setEmail("");
-    setPassword("");
-    setValidationErrors({
-      email: "",
-      password: "",
-      general: ""
-    });
-  };
-
-  // Contato via email
-  const handleContactSupport = () => {
-    window.location.href = "mailto:suporte@emailinsights.com.br?subject=Reativa%C3%A7%C3%A3o%20de%20Conta";
-  };
-  
-  // Contato via Telefone
-  const handleContactPhone = () => {
-    window.location.href = "tel:+5548999999999";
-  };
-
   return (
-    <div className="min-h-screen flex flex-col bg-[#121212] overflow-auto">
-      {/* Background e efeitos */}
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#0c1020] to-[#131a32] overflow-auto">
+      
       <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* Partículas */}
         <div className="absolute inset-0 overflow-hidden">
-          {[...Array(50)].map((_, index) => (
+          {[...Array(30)].map((_, index) => (
             <div 
               key={index} 
-              className="absolute rounded-full bg-orange-500/10"
+              className="absolute rounded-full bg-indigo-500/10"
               style={{
-                width: `${Math.random() * 6 + 1}px`,
-                height: `${Math.random() * 6 + 1}px`,
+                width: `${Math.random() * 4 + 1}px`,
+                height: `${Math.random() * 4 + 1}px`,
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
-                opacity: Math.random() * 0.5 + 0.1,
-                animation: `float ${Math.random() * 50 + 20}s infinite alternate ease-in-out`,
+                opacity: Math.random() * 0.3 + 0.1,
+                animation: `float ${Math.random() * 40 + 20}s infinite alternate ease-in-out`,
                 animationDelay: `${Math.random() * 5}s`
               }}
             />
           ))}
         </div>
 
-        {/* Gradientes */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] rounded-full bg-gradient-to-r from-orange-500/10 to-orange-500/0 blur-[100px] opacity-30 animate-pulse"></div>
-          <div className="absolute -top-[10%] -left-[10%] w-[80vw] h-[80vw] rounded-full bg-gradient-to-r from-amber-600/10 to-amber-600/0 blur-[100px] opacity-20 animate-pulse" style={{animationDuration: '12s'}}></div>
-          <div className="absolute -bottom-[20%] -right-[10%] w-[70vw] h-[70vw] rounded-full bg-gradient-to-r from-orange-700/10 to-orange-700/0 blur-[100px] opacity-20 animate-pulse" style={{animationDuration: '15s'}}></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] rounded-full bg-gradient-to-r from-indigo-500/5 to-indigo-500/0 blur-[80px] opacity-30"></div>
+          <div className="absolute -top-[10%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-gradient-to-r from-indigo-500/5 to-indigo-500/0 blur-[80px] opacity-20"></div>
+          <div className="absolute -bottom-[20%] -right-[10%] w-[40vw] h-[40vw] rounded-full bg-gradient-to-r from-blue-500/5 to-blue-500/0 blur-[80px] opacity-20"></div>
         </div>
-
-        {/* Grid background */}
-        <div className="absolute inset-0 bg-[url('https://flowbite.s3.amazonaws.com/blocks/marketing-ui/hero/grid-pattern-dark.svg')] bg-repeat opacity-[0.03]"></div>
       </div>
 
-      {/* Conteúdo principal */}
       <div className="container mx-auto relative z-10 px-4 py-8 flex flex-col items-center justify-center flex-grow">
-        {/* Header com link de retorno */}
-        <div className={cn(
-          "w-full max-w-md mb-8",
-          isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2",
-          "transition-all duration-500"
-        )}>
-          <Link to="/" className="inline-flex items-center text-orange-400 hover:text-orange-300 transition-colors">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar para página inicial
-          </Link>
-        </div>
-
-        {/* Logo */}
+        
         <div className={cn(
           "mb-8 flex items-center justify-center gap-3",
           isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
           "transition-all duration-500 delay-100"
         )}>
-          <Flame className="h-10 w-10 text-orange-500" />
-          <h1 className="text-3xl font-bold text-white">Email<span className="text-orange-500">Insights</span></h1>
+          <div className="p-3 bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-500/30 rounded-lg">
+            <Flame className="h-10 w-10 text-indigo-500" />
+          </div>
+          <h1 className="text-3xl font-bold text-white">Email<span className="text-indigo-500">Insights</span></h1>
         </div>
 
-        {/* Login Card */}
         <Card className={cn(
-          "w-full max-w-md bg-[#1a1a1a]/90 border-[#333333] text-white rounded-xl backdrop-blur-sm shadow-xl",
+          "w-full max-w-md bg-gradient-to-br from-[#202942] to-[#2a3452] border border-white/8 text-white rounded-xl backdrop-blur-xl shadow-xl",
           isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8",
           "transition-all duration-500 delay-200"
         )}>
-          {/* Orange highlight border */}
-          <div className="h-1 w-full bg-gradient-to-r from-orange-500 via-orange-600 to-amber-700"></div>
           
-          <CardHeader className="space-y-1 pt-8 pb-2">
-            <CardTitle className="text-2xl text-center font-bold bg-gradient-to-r from-white to-slate-300 text-transparent bg-clip-text">
-              Bem-vindo ao Email Insights
+          <CardHeader className="space-y-1 pt-6 pb-4">
+            <CardTitle className="text-2xl text-center font-bold text-white">
+              Bem-vindo de volta
             </CardTitle>
-            <p className="text-center text-base text-gray-400">
-              Faça login para gerenciar suas campanhas de email
+            <p className="text-center text-sm text-blue-300/70">
+              Faça login para acessar sua conta
             </p>
           </CardHeader>
           
-          <CardContent className="pt-6 pb-8">
-            <form onSubmit={handleLogin} className="space-y-5">
-              {/* Email Field */}
+          <CardContent className="px-6 pb-6">
+            <form onSubmit={handleLogin} className="space-y-4">
+              
               <div className="space-y-1">
                 <div className={cn(
                   "relative",
-                  "rounded-lg",
-                  validationErrors.email ? "ring-2 ring-red-500/50" : ""
+                  validationErrors.email ? "ring-1 ring-red-500/50" : ""
                 )}>
                   <Mail className={cn(
-                    "absolute left-3 top-3 h-5 w-5 text-orange-400",
+                    "absolute left-3 top-3 h-4 w-4 text-indigo-400",
                     validationErrors.email ? "text-red-400" : ""
                   )} />
                   
@@ -255,31 +170,27 @@ export default function Login() {
                       }
                     }}
                     className={cn(
-                      "pl-10 border rounded-lg py-6",
-                      "bg-[#282828]/50 border-[#333333] text-white placeholder:text-gray-500 focus:border-orange-500",
-                      validationErrors.email ? "border-red-500/50" : "",
-                      "transition-all duration-300"
+                      "pl-10 bg-gradient-to-r from-[#0f1631] to-[#192041] border-indigo-500/20 hover:border-indigo-500/40 rounded-lg text-white focus-visible:ring-indigo-500 h-11 transition-all duration-200 placeholder:text-blue-300/50",
+                      validationErrors.email ? "border-red-500/50" : ""
                     )}
                   />
                 </div>
                 
                 {validationErrors.email && (
-                  <p className="text-red-400 text-xs flex items-center ml-2">
-                    <span className="w-1 h-1 rounded-full bg-red-500 mr-1.5 inline-block"></span>
+                  <p className="text-red-400 text-xs flex items-center gap-1 ml-2">
+                    <AlertCircle className="h-3 w-3" />
                     {validationErrors.email}
                   </p>
                 )}
               </div>
 
-              {/* Password Field */}
               <div className="space-y-1">
                 <div className={cn(
                   "relative",
-                  "rounded-lg",
-                  validationErrors.password ? "ring-2 ring-red-500/50" : ""
+                  validationErrors.password ? "ring-1 ring-red-500/50" : ""
                 )}>
                   <Lock className={cn(
-                    "absolute left-3 top-3 h-5 w-5 text-orange-400",
+                    "absolute left-3 top-3 h-4 w-4 text-indigo-400",
                     validationErrors.password ? "text-red-400" : ""
                   )} />
                   
@@ -294,32 +205,28 @@ export default function Login() {
                       }
                     }}
                     className={cn(
-                      "pl-10 pr-10 border rounded-lg py-6",
-                      "bg-[#282828]/50 border-[#333333] text-white placeholder:text-gray-500 focus:border-orange-500",
-                      validationErrors.password ? "border-red-500/50" : "",
-                      "transition-all duration-300"
+                      "pl-10 pr-10 bg-gradient-to-r from-[#0f1631] to-[#192041] border-indigo-500/20 hover:border-indigo-500/40 rounded-lg text-white focus-visible:ring-indigo-500 h-11 transition-all duration-200 placeholder:text-blue-300/50",
+                      validationErrors.password ? "border-red-500/50" : ""
                     )}
                   />
                   
-                  {/* Toggle password visibility */}
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 transition-all duration-300 text-slate-400 hover:text-orange-400"
+                    className="absolute right-3 top-3 transition-all duration-200 text-blue-300/70 hover:text-indigo-400"
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 
                 {validationErrors.password && (
-                  <p className="text-red-400 text-xs flex items-center ml-2">
-                    <span className="w-1 h-1 rounded-full bg-red-500 mr-1.5 inline-block"></span>
+                  <p className="text-red-400 text-xs flex items-center gap-1 ml-2">
+                    <AlertCircle className="h-3 w-3" />
                     {validationErrors.password}
                   </p>
                 )}
               </div>
 
-              {/* Remember me and Forgot password */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="relative inline-flex items-center">
@@ -329,10 +236,10 @@ export default function Login() {
                       checked={rememberMe}
                       onChange={() => setRememberMe(!rememberMe)}
                       className={cn(
-                        "w-4 h-4 rounded transition-colors duration-300 focus:ring-2 focus:ring-offset-2 cursor-pointer",
-                        "border-2 appearance-none relative",
-                        rememberMe ? "bg-orange-600 border-orange-600" : "bg-[#282828] border-[#333333]",
-                        "focus:ring-orange-500 focus:ring-offset-[#1a1a1a]"
+                        "w-4 h-4 rounded transition-colors duration-200 focus:ring-2 focus:ring-offset-2 cursor-pointer",
+                        "border-2 appearance-none relative bg-gradient-to-r from-[#0f1631] to-[#192041]",
+                        rememberMe ? "border-indigo-500 bg-indigo-500" : "border-indigo-500/30",
+                        "focus:ring-indigo-500"
                       )}
                     />
                     {rememberMe && (
@@ -346,65 +253,63 @@ export default function Login() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
                       </svg>
                     )}
-                    <label htmlFor="remember" className="ml-2 text-sm cursor-pointer text-gray-400">
-                      Lembrar de mim
-                    </label>
                   </div>
+                  <label htmlFor="remember" className="text-sm text-blue-300/70 cursor-pointer">
+                    Lembrar de mim
+                  </label>
                 </div>
                 
                 <Link
                   to="/forgot-password"
-                  className="text-sm text-orange-400 hover:text-orange-300 transition-colors"
+                  className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
                 >
                   Esqueceu a senha?
                 </Link>
               </div>
 
-              {/* Error message */}
-              {validationErrors.general && (
-                <div className="rounded-lg p-4 text-center border bg-red-500/10 border-red-500/30 text-red-400">
-                  <p className="text-sm font-medium flex items-center justify-center">
-                    <Power className="h-4 w-4 mr-2" />
-                    {validationErrors.general}
+              {(error || validationErrors.general) && (
+                <div className="rounded-lg p-3 bg-red-500/10 border border-red-500/30 backdrop-blur-sm">
+                  <p className="text-sm text-red-300 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    {error || validationErrors.general}
                   </p>
                 </div>
               )}
 
-              {/* Login Button */}
               <div className="pt-2">
                 <Button 
                   type="submit"
                   className={cn(
                     "w-full flex items-center justify-center gap-2 rounded-lg",
-                    "font-medium text-white py-6",
-                    "transition-all duration-300",
-                    "bg-orange-600 hover:bg-orange-700",
-                    "shadow-lg shadow-orange-600/20",
-                    isPending ? "opacity-90 cursor-not-allowed" : ""
+                    "px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg",
+                    isPending ? "opacity-80 cursor-not-allowed" : ""
                   )}
                   disabled={isPending}
                 >
                   {isPending ? (
                     <>
-                      <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
                       <span>Entrando...</span>
                     </>
                   ) : (
                     <>
-                      <LogIn className="w-5 h-5" />
-                      <span>Entrar na plataforma</span>
+                      <LogIn className="h-4 w-4" />
+                      Entrar
                     </>
                   )}
                 </Button>
               </div>
               
-              {/* Signup link */}
-              <div className="text-center pt-3">
-                <p className="text-sm text-gray-400">
+              <div className="text-center pt-2">
+                <p className="text-sm text-blue-300/70">
                   Não tem uma conta?{' '}
                   <Link
                     to="/signup"
-                    className="text-orange-400 hover:text-orange-300 transition-colors font-medium"
+                    className="text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
                   >
                     Criar conta
                   </Link>
@@ -414,9 +319,9 @@ export default function Login() {
           </CardContent>
         </Card>
 
-        {/* Footer */}
+
         <div className={cn(
-          "mt-8 mb-4 text-center text-xs text-slate-600",
+          "mt-6 mb-4 text-center text-xs text-blue-300/50",
           isLoaded ? "opacity-100" : "opacity-0",
           "transition-opacity duration-500 delay-300"
         )}>
@@ -424,88 +329,10 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Account status dialog */}
-      <Dialog 
-        open={statusDialogOpen} 
-        onOpenChange={handleOpenChange}
-      >
-        <DialogContent 
-          className="bg-[#1a1a1a] border-[#333333] text-white sm:max-w-md" 
-          onEscapeKeyDown={(e) => accountStatus && e.preventDefault()}
-          onInteractOutside={(e) => accountStatus && e.preventDefault()}
-          onPointerDownOutside={(e) => accountStatus && e.preventDefault()}
-        >
-          <DialogHeader>
-            <div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${
-              accountStatus?.status === 'suspended' 
-                ? 'bg-red-100 dark:bg-red-900/20' 
-                : 'bg-orange-100 dark:bg-orange-900/20'
-            } mb-4`}>
-              <AlertTriangle className={`h-6 w-6 ${
-                accountStatus?.status === 'suspended' 
-                  ? 'text-red-600 dark:text-red-500' 
-                  : 'text-orange-600 dark:text-orange-500'
-              }`} />
-            </div>
-            <DialogTitle className="text-xl text-center">
-              {accountStatus?.status === 'suspended' ? 'Conta Suspensa' : 'Conta Inativa'}
-            </DialogTitle>
-            <DialogDescription className="text-center text-gray-400">
-              {accountStatus?.message}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className={`rounded-lg p-4 my-2 ${
-            accountStatus?.status === 'suspended' 
-              ? 'bg-red-500/10 border border-red-500/30 text-red-400' 
-              : 'bg-orange-500/10 border border-orange-500/30 text-orange-400'
-          }`}>
-            <p className="text-sm">
-              {accountStatus?.details}
-            </p>
-          </div>
-
-          <DialogFooter className="sm:justify-center gap-2 flex-col">
-            {/* Phone button */}
-            <Button 
-              className="bg-orange-600 hover:bg-orange-700 flex items-center justify-center gap-2 w-full sm:w-auto"
-              onClick={handleContactPhone}
-            >
-              <Phone className="h-4 w-4" />
-              Contatar via Telefone
-            </Button>
-            
-            {/* Email button */}
-            <Button 
-              className="bg-amber-600 hover:bg-amber-700 flex items-center justify-center gap-2 w-full sm:w-auto"
-              onClick={handleContactSupport}
-            >
-              <Mail className="h-4 w-4" />
-              Contatar via Email
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="border-[#333333] text-white hover:bg-[#282828]/50 w-full sm:w-auto"
-              onClick={handleCloseDialog}
-            >
-              Tentar Novamente
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Animações */}
       <style jsx="true">{`
         @keyframes float {
           0% { transform: translate(0, 0); }
-          100% { transform: translate(10px, 10px); }
-        }
-        
-        @keyframes pulse {
-          0% { opacity: var(--opacity, 0.3); }
-          50% { opacity: calc(var(--opacity, 0.3) * 0.6); }
-          100% { opacity: var(--opacity, 0.3); }
+          100% { transform: translate(8px, 8px); }
         }
       `}</style>
     </div>

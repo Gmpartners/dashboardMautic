@@ -12,6 +12,7 @@ export const MetricsProvider = ({ children }) => {
     dailyData: [],
     emailData: [],
     mauticAccounts: [],
+    accounts: [], // Adicionado para guardar contas disponíveis
     totals: {
       sentCount: 0,
       deliveredCount: 0,
@@ -24,10 +25,13 @@ export const MetricsProvider = ({ children }) => {
     },
     averages: {
       openRate: 0,
+      uniqueOpenRate: 0,
       clickRate: 0,
+      uniqueClickRate: 0,
       bounceRate: 0,
       unsubscribeRate: 0,
-      clickToOpenRate: 0
+      ctr: 0,
+      uniqueCtr: 0
     }
   });
   
@@ -52,7 +56,7 @@ export const MetricsProvider = ({ children }) => {
   const [activeView, setActiveView] = useState('overview');
   
   const [accounts, setAccounts] = useState([]);
-  const [campaigns, setCampaigns] = useState([]); // Mantemos o estado, mas não buscaremos dados
+  const [campaigns, setCampaigns] = useState([]);
   const [allEmails, setAllEmails] = useState([]);
   const [accountsLoading, setAccountsLoading] = useState(true);
   const [emailMetricsLoading, setEmailMetricsLoading] = useState(true);
@@ -96,7 +100,7 @@ export const MetricsProvider = ({ children }) => {
         datas: newFilters.dateRange !== oldFilters.dateRange,
         conta: newFilters.selectedAccount !== oldFilters.selectedAccount,
         email: newFilters.selectedEmail !== oldFilters.selectedEmail,
-        contaIndividual: newFilters.selectedIndividualAccount !== oldFilters.selectedIndividualAccount
+        contaIndividual: newFilters.selectedIndividualAccount !== oldFilters.selectedIndividual
       }
     });
   };
@@ -138,16 +142,17 @@ export const MetricsProvider = ({ children }) => {
     setFilterChanged(true);
   }, [dateRange, selectedAccount, selectedEmail, selectedCampaigns, selectedIndividualAccount]);
   
+  // Função corrigida para buscar contas
   const fetchAccounts = useCallback(async () => {
     setAccountsLoading(true);
     setNoDataAvailable(false);
     
     try {
       const userId = getUserId();
-      console.log('Fetching accounts for user:', userId);
+      console.log('🔍 [MetricsContext] Buscando contas para o usuário:', userId);
       
       const response = await metricsMailApi.listAccounts(userId);
-      console.log('Accounts response:', response);
+      console.log('🔍 [MetricsContext] Resposta da API de contas:', response);
       
       if (response && response.success && response.data) {
         let accountsData = Array.isArray(response.data) ? response.data : [response.data];
@@ -160,8 +165,16 @@ export const MetricsProvider = ({ children }) => {
           url: acc.url
         }));
         
-        console.log('Normalized accounts:', normalizedAccounts);
+        console.log('✅ [MetricsContext] Contas normalizadas:', normalizedAccounts);
+        
+        // Atualiza o estado local
         setAccounts(normalizedAccounts);
+        
+        // Guarda as contas no data também, para serem acessíveis por outros componentes
+        setData(prevData => ({
+          ...prevData,
+          accounts: normalizedAccounts
+        }));
         
         if (normalizedAccounts.length === 0) {
           setNoDataAvailable(true);
@@ -173,7 +186,7 @@ export const MetricsProvider = ({ children }) => {
         setLoadError("Não foi possível carregar contas. Verifique se o servidor está disponível.");
       }
     } catch (error) {
-      console.error('Error fetching accounts:', error);
+      console.error('❌ [MetricsContext] Erro ao buscar contas:', error);
       setAccounts([]);
       setLoadError(`Erro ao carregar contas: ${error.message || 'Falha na comunicação com o servidor'}`);
     } finally {
@@ -193,6 +206,7 @@ export const MetricsProvider = ({ children }) => {
     return Promise.resolve([]);
   }, []);
 
+  // Função corrigida para buscar todos os emails
   const fetchAllEmails = useCallback(async () => {
     try {
       const userId = getUserId();
@@ -212,11 +226,12 @@ export const MetricsProvider = ({ children }) => {
           }
         }));
         
+        console.log('✅ [MetricsContext] Emails normalizados:', normalizedEmails);
         setAllEmails(normalizedEmails);
         return normalizedEmails;
       }
     } catch (error) {
-      console.error('Error fetching all emails:', error);
+      console.error('❌ [MetricsContext] Erro ao buscar todos os emails:', error);
     }
     
     return [];
@@ -243,7 +258,7 @@ export const MetricsProvider = ({ children }) => {
         }));
       }
     } catch (error) {
-      console.error(`Error fetching emails for account ${accountId}:`, error);
+      console.error(`❌ [MetricsContext] Erro ao buscar emails para conta ${accountId}:`, error);
     }
     
     return [];
@@ -296,7 +311,7 @@ export const MetricsProvider = ({ children }) => {
     const clickRate = totalSends > 0 ? (totalClicks / totalSends) * 100 : 0;
     const clickToOpenRate = totalOpens > 0 ? (totalClicks / totalOpens) * 100 : 0;
     
-    console.log('📊 Taxas calculadas localmente:', {
+    console.log('📊 [MetricsContext] Taxas calculadas localmente:', {
       totalSends, totalOpens, totalClicks,
       openRate, clickRate, clickToOpenRate
     });
@@ -311,6 +326,7 @@ export const MetricsProvider = ({ children }) => {
     };
   }, []);
   
+  // Função corrigida para buscar dados diários
   const fetchDailyData = useCallback(async () => {
     try {
       const userId = getUserId();
@@ -319,14 +335,35 @@ export const MetricsProvider = ({ children }) => {
       // FIX: Garantir que o objeto de filtros está sendo construído corretamente
       const filters = {
         startDate: dateRange.from,
-        endDate: dateRange.to,
-        accountId: selectedIndividualAccount !== 'all' ? selectedIndividualAccount : 
-                  (selectedAccount !== 'all' ? selectedAccount : undefined),
-        emailId: selectedEmail !== 'none' ? selectedEmail : undefined
+        endDate: dateRange.to
       };
       
+      // Adicionar accountId aos filtros apenas se uma conta específica estiver selecionada
+      if (selectedIndividualAccount !== 'all') {
+        filters.accountId = selectedIndividualAccount;
+      } else if (selectedAccount !== 'all') {
+        // Para suportar seleção múltipla de contas, verifique se selectedAccount é um array
+        if (Array.isArray(selectedAccount) && selectedAccount.length === 1 && selectedAccount[0] !== 'all') {
+          // Procura a conta pelo nome para obter o ID
+          const account = accounts.find(acc => acc.name === selectedAccount[0]);
+          if (account) {
+            filters.accountId = account.id || account.accountId;
+            console.log(`🔍 [MetricsContext] Adicionando conta ao filtro por nome: ${selectedAccount[0]} -> ID: ${filters.accountId}`);
+          }
+        }
+      }
+      
+      // Adicionar emailId aos filtros apenas se um email específico estiver selecionado
+      if (selectedEmail !== 'none') {
+        // Para suportar seleção múltipla de emails, verifique se selectedEmail é um array
+        if (Array.isArray(selectedEmail) && selectedEmail.length === 1 && selectedEmail[0] !== 'none') {
+          filters.emailId = selectedEmail[0];
+          console.log(`🔍 [MetricsContext] Adicionando email ao filtro: ${filters.emailId}`);
+        }
+      }
+      
       // FIX: Log detalhado de filtros
-      console.log('Fetching daily data with filters:', JSON.stringify(filters, null, 2));
+      console.log('🔍 [MetricsContext] Buscando dados diários com filtros:', JSON.stringify(filters, null, 2));
       
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Timeout exceeded for daily metrics')), 15000);
@@ -339,14 +376,14 @@ export const MetricsProvider = ({ children }) => {
         sendsResponse = await Promise.race([sendsPromise, timeoutPromise]);
         
         if (sendsResponse?.success && Array.isArray(sendsResponse.data)) {
-          console.log('✅ Daily sends data:', sendsResponse.data);
+          console.log('✅ [MetricsContext] Dados diários de envios:', sendsResponse.data);
           setSendsData(sendsResponse.data);
         } else {
-          console.warn('⚠️ Invalid sends data:', sendsResponse);
+          console.warn('⚠️ [MetricsContext] Dados de envios inválidos:', sendsResponse);
           setSendsData([]);
         }
       } catch (error) {
-        console.error('❌ Error fetching daily sends:', error);
+        console.error('❌ [MetricsContext] Erro ao buscar dados diários de envios:', error);
         setSendsData([]);
       }
       
@@ -355,14 +392,14 @@ export const MetricsProvider = ({ children }) => {
         opensResponse = await Promise.race([opensPromise, timeoutPromise]);
         
         if (opensResponse?.success && Array.isArray(opensResponse.data)) {
-          console.log('✅ Daily opens data:', opensResponse.data);
+          console.log('✅ [MetricsContext] Dados diários de aberturas:', opensResponse.data);
           setOpensData(opensResponse.data);
         } else {
-          console.warn('⚠️ Invalid opens data:', opensResponse);
+          console.warn('⚠️ [MetricsContext] Dados de aberturas inválidos:', opensResponse);
           setOpensData([]);
         }
       } catch (error) {
-        console.error('❌ Error fetching daily opens:', error);
+        console.error('❌ [MetricsContext] Erro ao buscar dados diários de aberturas:', error);
         setOpensData([]);
       }
       
@@ -371,14 +408,14 @@ export const MetricsProvider = ({ children }) => {
         clicksResponse = await Promise.race([clicksPromise, timeoutPromise]);
         
         if (clicksResponse?.success && Array.isArray(clicksResponse.data)) {
-          console.log('✅ Daily clicks data:', clicksResponse.data);
+          console.log('✅ [MetricsContext] Dados diários de cliques:', clicksResponse.data);
           setClicksData(clicksResponse.data);
         } else {
-          console.warn('⚠️ Invalid clicks data:', clicksResponse);
+          console.warn('⚠️ [MetricsContext] Dados de cliques inválidos:', clicksResponse);
           setClicksData([]);
         }
       } catch (error) {
-        console.error('❌ Error fetching daily clicks:', error);
+        console.error('❌ [MetricsContext] Erro ao buscar dados diários de cliques:', error);
         setClicksData([]);
       }
       
@@ -387,22 +424,22 @@ export const MetricsProvider = ({ children }) => {
         ratesResponse = await Promise.race([ratesPromise, timeoutPromise]);
         
         if (ratesResponse?.success && ratesResponse.data) {
-          console.log('✅ Conversion rates data:', ratesResponse.data);
+          console.log('✅ [MetricsContext] Dados de taxas de conversão:', ratesResponse.data);
           const rates = ratesResponse.data;
           if (rates.openRate === 0 && rates.clickRate === 0 && rates.deliveryRate === 0) {
-            console.warn('⚠️ Todas as taxas estão zeradas, tentando calcular localmente');
+            console.warn('⚠️ [MetricsContext] Todas as taxas estão zeradas, tentando calcular localmente');
             const calculatedRates = calculateRatesFromRawData(sendsResponse?.data, opensResponse?.data, clicksResponse?.data);
             setRatesData(calculatedRates || rates);
           } else {
             setRatesData(rates);
           }
         } else {
-          console.warn('⚠️ Invalid rates data:', ratesResponse);
+          console.warn('⚠️ [MetricsContext] Dados de taxas inválidos:', ratesResponse);
           const calculatedRates = calculateRatesFromRawData(sendsResponse?.data, opensResponse?.data, clicksResponse?.data);
           setRatesData(calculatedRates);
         }
       } catch (error) {
-        console.error('❌ Error fetching conversion rates:', error);
+        console.error('❌ [MetricsContext] Erro ao buscar taxas de conversão:', error);
         const calculatedRates = calculateRatesFromRawData(sendsResponse?.data, opensResponse?.data, clicksResponse?.data);
         setRatesData(calculatedRates);
       }
@@ -412,13 +449,13 @@ export const MetricsProvider = ({ children }) => {
         lastSendResponse = await Promise.race([lastSendPromise, timeoutPromise]);
         
         if (lastSendResponse?.success) {
-          console.log('✅ Last send data:', lastSendResponse.data);
+          console.log('✅ [MetricsContext] Dados do último envio:', lastSendResponse.data);
           setLastSendData(lastSendResponse.data);
         } else {
           setLastSendData(null);
         }
       } catch (error) {
-        console.error('❌ Error fetching last send:', error);
+        console.error('❌ [MetricsContext] Erro ao buscar último envio:', error);
         setLastSendData(null);
       }
       
@@ -427,13 +464,13 @@ export const MetricsProvider = ({ children }) => {
         sendRateResponse = await Promise.race([sendRatePromise, timeoutPromise]);
         
         if (sendRateResponse?.success) {
-          console.log('✅ Send rate data:', sendRateResponse.data);
+          console.log('✅ [MetricsContext] Dados de taxa de envio:', sendRateResponse.data);
           setSendRateData(sendRateResponse.data);
         } else {
           setSendRateData(null);
         }
       } catch (error) {
-        console.error('❌ Error fetching send rate:', error);
+        console.error('❌ [MetricsContext] Erro ao buscar taxa de envio:', error);
         setSendRateData(null);
       }
       
@@ -447,10 +484,10 @@ export const MetricsProvider = ({ children }) => {
         isEmpty: (!sendsResponse?.data?.length && !opensResponse?.data?.length && !clicksResponse?.data?.length)
       };
     } catch (error) {
-      console.error('❌ Error in fetchDailyData:', error);
+      console.error('❌ [MetricsContext] Erro em fetchDailyData:', error);
       throw error;
     }
-  }, [getUserId, trackRequest, ratesData, calculateRatesFromRawData]);
+  }, [getUserId, trackRequest, ratesData, calculateRatesFromRawData, accounts]);
 
   const fetchMetricsByDate = useCallback(async (filters = {}) => {
     try {
@@ -500,6 +537,7 @@ export const MetricsProvider = ({ children }) => {
     }
   }, [getUserId]);
   
+  // Função principal corrigida para buscar dados conforme estrutura da API
   const fetchData = useCallback(async () => {
     if (isFiltering) {
       return;
@@ -520,14 +558,47 @@ export const MetricsProvider = ({ children }) => {
       // FIX: Garantir que os filtros estão corretos
       const filters = {
         startDate: dateRange.from,
-        endDate: dateRange.to,
-        accountId: selectedIndividualAccount !== 'all' ? selectedIndividualAccount :
-                  (selectedAccount !== 'all' ? selectedAccount : undefined),
-        emailId: selectedEmail !== 'none' ? selectedEmail : undefined
+        endDate: dateRange.to
       };
       
+      // Adicionar accountId aos filtros apenas se uma conta específica estiver selecionada
+      if (selectedIndividualAccount !== 'all') {
+        filters.accountId = selectedIndividualAccount;
+      } else if (selectedAccount !== 'all') {
+        // Verificar se é um array de seleção de contas
+        if (Array.isArray(selectedAccount) && selectedAccount.length > 0 && !selectedAccount.includes('all')) {
+          // Mapear nomes de contas para IDs
+          const accountIds = selectedAccount.map(accountName => {
+            const account = accounts.find(acc => acc.name === accountName);
+            return account ? (account.id || account.accountId) : null;
+          }).filter(id => id !== null);
+          
+          if (accountIds.length === 1) {
+            filters.accountId = accountIds[0];
+            console.log(`🔍 [MetricsContext] Adicionando uma única conta ao filtro: ${filters.accountId}`);
+          } else if (accountIds.length > 1) {
+            filters.accountIds = accountIds.join(',');
+            console.log(`🔍 [MetricsContext] Adicionando múltiplas contas ao filtro: ${filters.accountIds}`);
+          }
+        }
+      }
+      
+      // Adicionar emailId aos filtros apenas se um email específico estiver selecionado
+      if (selectedEmail !== 'none') {
+        // Verificar se é um array de seleção de emails
+        if (Array.isArray(selectedEmail) && selectedEmail.length > 0 && !selectedEmail.includes('none')) {
+          if (selectedEmail.length === 1) {
+            filters.emailId = selectedEmail[0];
+            console.log(`🔍 [MetricsContext] Adicionando um único email ao filtro: ${filters.emailId}`);
+          } else {
+            filters.emailIds = selectedEmail.join(',');
+            console.log(`🔍 [MetricsContext] Adicionando múltiplos emails ao filtro: ${filters.emailIds}`);
+          }
+        }
+      }
+      
       // FIX: Log detalhado dos filtros sendo utilizados
-      console.log('Fetching email metrics with filters:', JSON.stringify(filters, null, 2));
+      console.log('🔍 [MetricsContext] Buscando métricas de email com filtros:', JSON.stringify(filters, null, 2));
       
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Timeout exceeded for email metrics')), 20000);
@@ -546,11 +617,13 @@ export const MetricsProvider = ({ children }) => {
       
       let hasEmailData = false;
       if (emailsResponse && emailsResponse.success && emailsResponse.data) {
-        console.log('Email metrics response:', emailsResponse);
+        console.log('📊 [MetricsContext] Email metrics response:', emailsResponse);
         
+        const responseData = emailsResponse.data;
         const mauticAccounts = new Set();
-        
         let emailsData = [];
+        
+        // NOVA ESTRUTURA: Processar dados conforme formato da API mostrada no console
         let totals = {
           sentCount: 0,
           deliveredCount: 0,
@@ -561,71 +634,112 @@ export const MetricsProvider = ({ children }) => {
           bounceCount: 0,
           unsubscribeCount: 0
         };
+        
         let averages = {
           openRate: 0,
+          uniqueOpenRate: 0,
           clickRate: 0,
+          uniqueClickRate: 0,
           bounceRate: 0,
           unsubscribeRate: 0,
-          clickToOpenRate: 0
+          ctr: 0,
+          uniqueCtr: 0
         };
         
-        if (emailsResponse.data.emails && Array.isArray(emailsResponse.data.emails)) {
-          emailsData = emailsResponse.data.emails;
-          totals = emailsResponse.data.totals || totals;
-          averages = emailsResponse.data.averages || averages;
-        } else if (Array.isArray(emailsResponse.data)) {
-          emailsData = emailsResponse.data;
+        // Processar dados baseado na estrutura da API do console
+        if (responseData.counts) {
+          // Usar os dados de counts da API
+          totals = {
+            sentCount: responseData.counts.sentCount || 0,
+            deliveredCount: responseData.counts.deliveredCount || responseData.counts.sentCount || 0,
+            openCount: responseData.counts.openCount || 0,
+            uniqueOpenCount: responseData.counts.uniqueOpenCount || 0,
+            clickCount: responseData.counts.clickCount || 0,
+            uniqueClickCount: responseData.counts.uniqueClickCount || 0,
+            bounceCount: responseData.counts.bounceCount || 0,
+            unsubscribeCount: responseData.counts.unsubscribeCount || 0
+          };
           
-          emailsData.forEach(email => {
-            const metrics = email.metrics || {};
-            totals.sentCount += metrics.sentCount || 0;
-            totals.openCount += metrics.openCount || 0;
-            totals.clickCount += metrics.clickCount || 0;
-            totals.bounceCount += metrics.bounceCount || 0;
-            totals.unsubscribeCount += metrics.unsubscribeCount || 0;
-          });
-          
-          if (totals.sentCount > 0) {
-            averages.openRate = (totals.openCount / totals.sentCount) * 100;
-            averages.clickRate = (totals.clickCount / totals.sentCount) * 100;
-            averages.bounceRate = (totals.bounceCount / totals.sentCount) * 100;
-            averages.unsubscribeRate = (totals.unsubscribeCount / totals.sentCount) * 100;
-          }
-          
-          if (totals.openCount > 0) {
-            averages.clickToOpenRate = (totals.clickCount / totals.openCount) * 100;
-          }
-        } else if (typeof emailsResponse.data === 'object') {
-          emailsData = [emailsResponse.data];
+          console.log('✅ [MetricsContext] Totais processados da API:', totals);
         }
         
-        hasEmailData = emailsData.length > 0;
+        if (responseData.rates) {
+          // Usar os dados de rates da API - TODOS os rates disponíveis
+          averages = {
+            openRate: responseData.rates.openRate || 0,
+            uniqueOpenRate: responseData.rates.uniqueOpenRate || 0,
+            clickRate: responseData.rates.clickRate || 0,
+            uniqueClickRate: responseData.rates.uniqueClickRate || 0,
+            bounceRate: responseData.rates.bounceRate || 0,
+            unsubscribeRate: responseData.rates.unsubscribeRate || 0,
+            ctr: responseData.rates.ctr || 0,
+            uniqueCtr: responseData.rates.uniqueCtr || 0
+          };
+          
+          console.log('✅ [MetricsContext] Médias processadas da API:', averages);
+        }
         
-        emailsData.forEach(item => {
-          if (item.account?.name || item.account?.id) {
-            const accountName = item.account?.name;
-            if (accountName && typeof accountName === 'string') {
-              mauticAccounts.add(accountName);
+        // Processar accounts se estão disponíveis
+        if (responseData.accounts && Array.isArray(responseData.accounts)) {
+          responseData.accounts.forEach(account => {
+            if (account && account.name) {
+              mauticAccounts.add(account.name);
             }
-          }
-        });
+          });
+        }
         
+        // Processar recentEmails se estão disponíveis
+        if (responseData.recentEmails && Array.isArray(responseData.recentEmails)) {
+          emailsData = responseData.recentEmails.map(email => ({
+            id: email._id || email.id,
+            _id: email._id || email.id,
+            subject: email.subject,
+            fromName: email.fromName,
+            accountName: email.accountName,
+            metrics: email.metrics || {},
+            account: email.account || {
+              id: email.account?._id || email.account?.id,
+              name: email.account?.name || email.accountName
+            },
+            campaign: email.campaign || null
+          }));
+          
+          console.log('✅ [MetricsContext] Emails processados:', emailsData);
+        } else if (responseData.emails && Array.isArray(responseData.emails)) {
+          // Fallback para estrutura alternativa
+          emailsData = responseData.emails;
+        } else if (Array.isArray(responseData)) {
+          // Fallback para quando data é um array direto
+          emailsData = responseData;
+        }
+        
+        hasEmailData = emailsData.length > 0 || Object.values(totals).some(val => val > 0);
+        
+        // Atualizar estado com os dados processados
         setData({
           dailyData: [], 
           emailData: emailsData,
           mauticAccounts: Array.from(mauticAccounts),
+          accounts: accounts, // Manter a lista de contas atualizada
           totals,
           averages
         });
         
-        if (emailsData.length === 0) {
-          console.log('No email data found with current filters');
-        }
+        console.log('✅ [MetricsContext] Dados finais atualizados no contexto:', {
+          emailsCount: emailsData.length,
+          totals,
+          averages,
+          mauticAccounts: Array.from(mauticAccounts)
+        });
+        
       } else {
-        setData({
+        console.warn('⚠️ [MetricsContext] Resposta da API não contém dados válidos');
+        setData(prevData => ({
+          ...prevData,
           dailyData: [],
           emailData: [],
           mauticAccounts: [],
+          accounts: accounts, // Manter a lista de contas atualizada
           totals: {
             sentCount: 0,
             deliveredCount: 0,
@@ -638,12 +752,15 @@ export const MetricsProvider = ({ children }) => {
           },
           averages: {
             openRate: 0,
+            uniqueOpenRate: 0,
             clickRate: 0,
+            uniqueClickRate: 0,
             bounceRate: 0,
             unsubscribeRate: 0,
-            clickToOpenRate: 0
+            ctr: 0,
+            uniqueCtr: 0
           }
-        });
+        }));
       }
       
       setLoadAttempts(0);
@@ -652,7 +769,7 @@ export const MetricsProvider = ({ children }) => {
         setNoDataAvailable(true);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('❌ [MetricsContext] Error fetching data:', error);
       let errorMessage = 'Falha na comunicação com o servidor';
       
       if (error.message?.includes('timeout')) {
@@ -677,7 +794,7 @@ export const MetricsProvider = ({ children }) => {
         timersRef.current.safetyTimeout = null;
       }
     }
-  }, [fetchDailyData, isFiltering, getUserId, startGlobalTimeout, trackRequest]);
+  }, [fetchDailyData, isFiltering, getUserId, startGlobalTimeout, trackRequest, accounts]);
   
   const fetchEvents = useCallback(async (filters = {}, limit = 100, page = 1) => {
     try {
@@ -688,30 +805,59 @@ export const MetricsProvider = ({ children }) => {
       const eventFilters = {
         startDate: dateRange.from,
         endDate: dateRange.to,
-        accountId: selectedIndividualAccount !== 'all' ? selectedIndividualAccount :
-                  (selectedAccount !== 'all' ? selectedAccount : undefined),
-        emailId: selectedEmail !== 'none' ? selectedEmail : undefined,
         limit,
         page,
         ...filters
       };
       
-      console.log('Fetching events with filters:', eventFilters);
+      // Adicionar accountId aos filtros apenas se uma conta específica estiver selecionada
+      if (selectedIndividualAccount !== 'all') {
+        eventFilters.accountId = selectedIndividualAccount;
+      } else if (selectedAccount !== 'all') {
+        // Para suportar seleção múltipla de contas
+        if (Array.isArray(selectedAccount) && selectedAccount.length > 0 && !selectedAccount.includes('all')) {
+          // Mapear nomes de contas para IDs
+          const accountIds = selectedAccount.map(accountName => {
+            const account = accounts.find(acc => acc.name === accountName);
+            return account ? (account.id || account.accountId) : null;
+          }).filter(id => id !== null);
+          
+          if (accountIds.length === 1) {
+            eventFilters.accountId = accountIds[0];
+          } else if (accountIds.length > 1) {
+            eventFilters.accountIds = accountIds.join(',');
+          }
+        }
+      }
+      
+      // Adicionar emailId aos filtros apenas se um email específico estiver selecionado
+      if (selectedEmail !== 'none') {
+        // Para suportar seleção múltipla de emails
+        if (Array.isArray(selectedEmail) && selectedEmail.length > 0 && !selectedEmail.includes('none')) {
+          if (selectedEmail.length === 1) {
+            eventFilters.emailId = selectedEmail[0];
+          } else {
+            eventFilters.emailIds = selectedEmail.join(',');
+          }
+        }
+      }
+      
+      console.log('🔍 [MetricsContext] Buscando eventos com filtros:', eventFilters);
       
       const eventsResponse = await metricsMailApi.getRecentEvents(userId, eventFilters);
       
       if (eventsResponse && eventsResponse.success && eventsResponse.data) {
-        console.log('Events data:', eventsResponse.data);
+        console.log('✅ [MetricsContext] Dados de eventos:', eventsResponse.data);
         setEventsData(eventsResponse.data);
         return eventsResponse.data;
       }
       
       return null;
     } catch (error) {
-      console.error('Error fetching events:', error);
+      console.error('❌ [MetricsContext] Erro ao buscar eventos:', error);
       return null;
     }
-  }, [getUserId]);
+  }, [getUserId, accounts]);
   
   const resetFiltersAndRetry = useCallback(() => {
     // FIX: Garante o formato correto para as datas
@@ -723,6 +869,8 @@ export const MetricsProvider = ({ children }) => {
       from: thirtyDaysAgo.toISOString().split('T')[0],
       to: today.toISOString().split('T')[0]
     };
+    
+    console.log('🔄 [MetricsContext] Resetando filtros para valores padrão');
     
     setSelectedAccount('all');
     setSelectedEmail('none');
@@ -755,7 +903,7 @@ export const MetricsProvider = ({ children }) => {
   }, [fetchData]);
   
   const refreshData = useCallback(() => {
-    console.log("🔄 Refreshing data with current filters:", JSON.stringify(filtersRef.current, null, 2));
+    console.log("🔄 [MetricsContext] Atualizando dados com filtros atuais:", JSON.stringify(filtersRef.current, null, 2));
     requestCache.current.clear();
     fetchData();
   }, [fetchData]);
@@ -803,7 +951,7 @@ export const MetricsProvider = ({ children }) => {
   useEffect(() => {
     if (!initialLoadRef.current && filterChanged) {
       const debounceTimer = setTimeout(() => {
-        console.log("🔄 Filtros alterados, recarregando dados...");
+        console.log("🔄 [MetricsContext] Filtros alterados, recarregando dados...");
         fetchData();
       }, 300);
       

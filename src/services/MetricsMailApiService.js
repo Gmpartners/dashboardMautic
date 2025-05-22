@@ -282,8 +282,6 @@ class MetricsMailApiService {
     return await this.delete(`/api/users/${userId}/accounts/${accountId}`);
   }
 
-  // Função getCampaigns retirada, pois não é suportada pela API
-
   async getAccountEmails(userId, accountId) {
     if (!userId || !accountId) {
       return { success: false, data: [], message: "ID de usuário ou ID de conta não fornecido" };
@@ -314,8 +312,6 @@ class MetricsMailApiService {
       params: cleanedFilters
     });
   }
-
-  // Função getMetricsByCampaign retirada, pois não é suportada pela API
   
   async getMetricsByEmail(userId, filters = {}) {
     if (!userId) {
@@ -578,25 +574,6 @@ class MetricsMailApiService {
     }
     
     return await this.post(`/api/webhooks/${webhookId}`, webhookData);
-  }
-
-  async getMetricsCompare(userId, compareType, filters = {}) {
-    if (!userId) {
-      return { success: false, data: [], message: "ID de usuário não fornecido" };
-    }
-    
-    if (!compareType || !['emails', 'accounts'].includes(compareType)) {
-      return { success: false, data: [], message: "Tipo de comparação inválido" };
-    }
-    
-    const cleanedFilters = this.cleanParams({
-      ...filters,
-      compareType
-    });
-    
-    return await this.get(`/api/users/${userId}/metrics/compare`, {
-      params: cleanedFilters
-    });
   }
   
   async checkHealth() {
